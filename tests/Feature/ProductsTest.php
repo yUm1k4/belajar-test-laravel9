@@ -6,6 +6,7 @@ use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use App\Models\User;
 
 class ProductsTest extends TestCase
 {
@@ -14,7 +15,10 @@ class ProductsTest extends TestCase
 
     public function test_produk_kosong()
     {
-        $response = $this->get('/products');
+        // create 1 user
+        $user = User::factory()->create();
+        // login as user
+        $response = $this->actingAs($user)->get('/products');
 
         $response->assertOk();
 
@@ -29,7 +33,10 @@ class ProductsTest extends TestCase
             'description' => 'Test Description',
         ]);
 
-        $response = $this->get('/products');
+        // create 1 user
+        $user = User::factory()->create();
+        // login as user
+        $response = $this->actingAs($user)->get('/products');
 
         $response->assertOk();
 
@@ -64,7 +71,10 @@ class ProductsTest extends TestCase
         //     ]);
         // }
 
-        $response = $this->get('/products');
+        // create 1 user
+        $user = User::factory()->create();
+        // login as user
+        $response = $this->actingAs($user)->get('/products');
 
         $response->assertOk();
         // dd($products->last());
