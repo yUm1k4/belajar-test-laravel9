@@ -7,18 +7,38 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\User;
+use phpDocumentor\Reflection\Types\Integer;
 
 class ProductsTest extends TestCase
 {
     // menyetel ulang database setelah tiap test sehingga data dari test sebelumnya tidak mengganggu test berikutnya
     use RefreshDatabase;
 
+    private $user;
+
+    private function create_user(int $is_admin = 0)
+    {
+        $this->user =  User::factory()->create([
+            'is_admin' => $is_admin,
+        ]);
+    }
+
+    // ? setUp() adalah method yang akan dijalankan sebelum setiap test
+    // public function setUp(): void
+    // {
+    //     parent::setUp();
+
+    //     // $this->artisan('db:seed');
+
+    //     // $this->user = User::factory()->create();
+    //     // $this->user = $this->create_user();
+    // }
+
     public function test_produk_kosong()
     {
-        // create 1 user
-        $user = User::factory()->create();
+        $this->create_user();
         // login as user
-        $response = $this->actingAs($user)->get('/products');
+        $response = $this->actingAs($this->user)->get('/products');
 
         $response->assertOk();
 
@@ -33,10 +53,9 @@ class ProductsTest extends TestCase
             'description' => 'Test Description',
         ]);
 
-        // create 1 user
-        $user = User::factory()->create();
+        $this->create_user();
         // login as user
-        $response = $this->actingAs($user)->get('/products');
+        $response = $this->actingAs($this->user)->get('/products');
 
         $response->assertOk();
 
@@ -71,15 +90,53 @@ class ProductsTest extends TestCase
         //     ]);
         // }
 
-        // create 1 user
-        $user = User::factory()->create();
+        $this->create_user();
         // login as user
-        $response = $this->actingAs($user)->get('/products');
+        $response = $this->actingAs($this->user)->get('/products');
 
         $response->assertOk();
         // dd($products->last());
 
         // ? cek seharusnya tidak ada product yg ke 11
         $response->assertDontSeeText($products->last()->name);
+    }
+
+    // function utk test view / tampilan
+    public function test_admin_bisa_melihat_button_add_new_product()
+    {
+        $this->create_user(1);
+        $response = $this->actingAs($this->user)->get('/products');
+
+        $response->assertOk();
+        $response->assertSeeText('Add New Product');
+    }
+
+    // function utk test view / tampilan
+    public function test_selain_admin_tidak_bisa_melihat_button_add_new_product()
+    {
+        $this->create_user();
+        $response = $this->actingAs($this->user)->get('/products');
+
+        $response->assertOk();
+        $response->assertDontSeeText('Add New Product');
+    }
+
+    // function utk test logic nya
+    public function test_admin_bisa_akses_halaman_tambah_produk()
+    {
+        $this->create_user(1);
+        $response = $this->actingAs($this->user)->get('/products/create');
+
+        $response->assertOk();
+        $response->assertSeeText('Create Product');
+    }
+
+    // function utk test logic nya
+    public function test_selain_admin_tidak_bisa_akses_halaman_tambah_produk()
+    {
+        $this->create_user();
+        $response = $this->actingAs($this->user)->get('/products/create');
+
+        $response->assertStatus(403);
     }
 }

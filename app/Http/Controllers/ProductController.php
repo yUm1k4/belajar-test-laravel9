@@ -15,6 +15,7 @@ class ProductController extends Controller
     public function index()
     {
         // $products = Product::all();
+        // add price_eur to products
         $products = Product::paginate(10); // test factories & pagination
 
         return view('products.index', compact('products'));
@@ -27,7 +28,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        //
+        return view('products.create');
     }
 
     /**
@@ -38,7 +39,17 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'price' => 'required',
+        ]);
+
+        // set manual for description
+        $request->merge(['description' => 'This is a manual description']);
+
+        Product::create($request->all());
+
+        return redirect()->route('products.index')->with('status', 'Product created successfully.');
     }
 
     /**
