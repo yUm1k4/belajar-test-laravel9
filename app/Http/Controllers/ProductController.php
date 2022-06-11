@@ -44,9 +44,6 @@ class ProductController extends Controller
             'price' => 'required',
         ]);
 
-        // set manual for description
-        $request->merge(['description' => 'This is a manual description']);
-
         Product::create($request->all());
 
         return redirect()->route('products.index')->with('status', 'Product created successfully.');

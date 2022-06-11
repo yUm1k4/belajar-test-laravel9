@@ -50,7 +50,6 @@ class ProductsTest extends TestCase
         $product = Product::create([
             'name' => 'Test Product 1',
             'price' => '10.00',
-            'description' => 'Test Description',
         ]);
 
         $this->create_user();
@@ -86,7 +85,6 @@ class ProductsTest extends TestCase
         //     $product = Product::create([
         //         'name' => 'Test Product ' . $i,
         //         'price' => rand(10, 99),
-        //         'description' => 'Test Description ' . $i,
         //     ]);
         // }
 
@@ -138,5 +136,34 @@ class ProductsTest extends TestCase
         $response = $this->actingAs($this->user)->get('/products/create');
 
         $response->assertStatus(403);
+    }
+
+    public function test_hasil_tambah_produk_baru_ada_di_database()
+    {
+        $this->create_user(1);
+        $response = $this->actingAs($this->user)->post('/products', [
+            'name' => 'New Product Test',
+            'price' => 99.00,
+        ]);
+
+        // cek apakah produk yang ditambahkan ada di database
+        $this->assertDatabaseHas('products', [
+            'name' => 'New Product Test',
+            'price' => 99.00,
+        ]);
+
+        // assertRedirect() pastikan redirect ke halaman /products
+        $response->assertRedirect('/products');
+
+        // cek product yang ditambahkan ada di view ada 2 cara :
+        // * Cara 1 :
+        // $product = Product::where('name', 'New Product Test')->first();
+        // $response = $this->get('/products');
+        // $response->assertSeeText($product->name);
+        // $response->assertSeeText($product->price);
+        // * Cara 2 :
+        $product = Product::orderBy('id', 'desc')->first();
+        $this->assertEquals('New Product Test', $product->name);
+        $this->assertEquals(99.00, $product->price);
     }
 }
