@@ -277,7 +277,7 @@ class ProductsTest extends TestCase
         $this->assertEquals(0, Product::count()); // cek jumlah produk setelah dihapus
     }
 
-    public function test_tambah_produk_dengan_file_terupload()
+    public function test_tambah_produk_dengan_photo_terupload()
     {
         $this->create_user(1);
         Storage::fake('local'); // fake local folder
@@ -294,5 +294,20 @@ class ProductsTest extends TestCase
         Storage::disk('local')->assertExists('products/product.jpg');
 
         // file testing bisa cek di : storage\framework\testing\disks\local
+    }
+
+    public function test_hapus_photo_product_dari_folder_storage()
+    {
+        $this->create_user(1);
+        Storage::fake('local'); // fake local folder
+
+        $product = Product::factory()->create([
+            'photo' => 'product.jpg',
+        ]);
+
+        $response = $this->actingAs($this->user)->delete('products/' . $product->id);
+
+        // cek file terhapus ada di storage, products folder pertama itu dari controller
+        Storage::disk('local')->assertMissing('products/' . $product->photo);
     }
 }
