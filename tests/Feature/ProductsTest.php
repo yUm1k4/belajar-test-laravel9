@@ -170,7 +170,6 @@ class ProductsTest extends TestCase
     public function test_masuk_ke_halaman_edit_produk()
     {
         $this->create_user(1);
-
         $product = Product::factory()->create();
 
         $response = $this->actingAs($this->user)->get('products/' . $product->id . '/edit');
@@ -190,7 +189,6 @@ class ProductsTest extends TestCase
     public function test_edit_produk_berhasil()
     {
         $this->create_user(1);
-
         $product = Product::factory()->create();
 
         $response = $this->actingAs($this->user)->put('products/' . $product->id, [
@@ -220,7 +218,6 @@ class ProductsTest extends TestCase
     public function test_edit_produk_dapet_error_validasi()
     {
         $this->create_user(1);
-
         $product = Product::factory()->create();
 
         $response = $this->actingAs($this->user)->put('products/' . $product->id, [
@@ -245,7 +242,6 @@ class ProductsTest extends TestCase
     public function test_edit_produk_dapet_error_validasi_json()
     {
         $this->create_user(1);
-
         $product = Product::factory()->create();
 
         $response = $this->actingAs($this->user)
@@ -262,5 +258,21 @@ class ProductsTest extends TestCase
             'name' => ['The name must be at least 6 characters.'],
             'price' => ['The price field is required.'],
         ]);
+    }
+
+    public function test_hapus_produk_tidak_ada_lagi_di_database()
+    {
+        $this->create_user(1);
+        $product = Product::factory()->create();
+
+        $this->assertEquals(1, Product::count()); // cek jumlah produk sebelum dihapus
+
+        $response = $this->actingAs($this->user)->delete('products/' . $product->id);
+
+        $response->assertRedirect('/products'); // cek redirect ke halaman /products
+
+        $response->assertSessionHas('status'); // cek muncul message status
+
+        $this->assertEquals(0, Product::count()); // cek jumlah produk setelah dihapus
     }
 }
