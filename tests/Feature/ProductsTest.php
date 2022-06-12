@@ -167,7 +167,7 @@ class ProductsTest extends TestCase
         $this->assertEquals(99.00, $product->price);
     }
 
-    public function test_edit_produk_dengan_nama_dan_harga_yang_benar()
+    public function test_masuk_ke_halaman_edit_produk()
     {
         $this->create_user(1);
 
@@ -185,6 +185,36 @@ class ProductsTest extends TestCase
         // * atau bisa juga dengan cara ini cek nya pakai value
         // $response->assertSee('value="' . $product->name . '"', false); // false utk mematikan escape
         // $response->assertSee('value="' . $product->price . '"', false); // false utk mematikan escape
+    }
+
+    public function test_edit_produk_berhasil()
+    {
+        $this->create_user(1);
+
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($this->user)->put('products/' . $product->id, [
+            'name' => 'New Product Test',
+            'price' => 99.00,
+        ]);
+
+        // cek apakah produk yang diedit ada di database
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'New Product Test',
+            'price' => 99.00,
+        ]);
+
+        // assertRedirect() pastikan redirect ke halaman /products
+        $response->assertRedirect('/products');
+
+        // muncul message status
+        $response->assertSessionHas('status');
+
+        // cek product yang diedit ada di view :
+        $product = Product::orderBy('id', 'desc')->first();
+        $this->assertEquals('New Product Test', $product->name);
+        $this->assertEquals(99.00, $product->price);
     }
 
     public function test_edit_produk_dapet_error_validasi()
