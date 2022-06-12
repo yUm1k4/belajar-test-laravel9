@@ -3,11 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
-use App\Models\User;
-use phpDocumentor\Reflection\Types\Integer;
 
 class ProductsTest extends TestCase
 {
@@ -274,5 +275,24 @@ class ProductsTest extends TestCase
         $response->assertSessionHas('status'); // cek muncul message status
 
         $this->assertEquals(0, Product::count()); // cek jumlah produk setelah dihapus
+    }
+
+    public function test_tambah_produk_dengan_file_terupload()
+    {
+        $this->create_user(1);
+        Storage::fake('local'); // fake local folder
+
+        $photo = UploadedFile::fake()->image('product.jpg');
+
+        $response = $this->actingAs($this->user)->post('/products', [
+            'name' => 'New Product With Image',
+            'price' => 123,
+            'photo' => $photo,
+        ]);
+
+        // cek file terupload ada di storage, products folder pertama itu dari controller
+        Storage::disk('local')->assertExists('products/product.jpg');
+
+        // file testing bisa cek di : storage\framework\testing\disks\local
     }
 }

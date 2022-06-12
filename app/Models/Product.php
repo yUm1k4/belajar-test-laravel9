@@ -9,7 +9,7 @@ use App\Services\CurrencyService;
 class Product extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'price'];
+    protected $fillable = ['name', 'price', 'photo'];
 
     public function getPriceIdrAttribute()
     {

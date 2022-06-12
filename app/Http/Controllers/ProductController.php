@@ -43,9 +43,21 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required',
             'price' => 'required',
+            'photo' => 'image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        Product::create($request->all());
+        $product = Product::create($request->all());
+
+        // hande photo
+        if ($request->hasFile('photo')) {
+            // $photo = $request->file('photo');
+            // $photo_name = time() . '_' . $photo->getClientOriginalName();
+            // $photo->move(storage_path('public/products'), $photo_name);
+
+            $filename = $request->photo->getClientOriginalName();
+            $request->photo->storeAs('products', $filename);
+            $product->update(['photo' => $filename]);
+        } 
 
         return redirect()->route('products.index')->with('status', 'Product created successfully.');
     }
@@ -83,6 +95,15 @@ class ProductController extends Controller
     {
         $product->update($request->all());
 
+        // update photo
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $photo_name = time() . '_' . $photo->getClientOriginalName();
+            $photo->move(storage_path('public/products'), $photo_name);
+
+            $product->update(['photo' => $photo_name]);
+        }
+
         return redirect()->route('products.index')->with('status', 'Product updated successfully.');
     }
 
@@ -95,6 +116,14 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
+
+        // delete photo from storage
+        if ($product->photo) {
+            // Storage::delete('products/' . $product->photo);
+            $photo_path = storage_path('app/products/' . $product->photo);
+            if (file_exists($photo_path)) unlink($photo_path);
+        }
+
 
         return redirect()->route('products.index')->with('status', 'Product deleted successfully.');
     }
