@@ -166,4 +166,71 @@ class ProductsTest extends TestCase
         $this->assertEquals('New Product Test', $product->name);
         $this->assertEquals(99.00, $product->price);
     }
+
+    public function test_edit_produk_dengan_nama_dan_harga_yang_benar()
+    {
+        $this->create_user(1);
+
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($this->user)->get('products/' . $product->id . '/edit');
+
+        // bisa masuk ke halaman edit produk
+        $response->assertOk();
+
+        // * bisa melihat judul dan nama product yang diedit
+        $response->assertSeeText('Edit Product');
+        $response->assertSee($product->name);
+        $response->assertSee($product->price);
+        // * atau bisa juga dengan cara ini cek nya pakai value
+        // $response->assertSee('value="' . $product->name . '"', false); // false utk mematikan escape
+        // $response->assertSee('value="' . $product->price . '"', false); // false utk mematikan escape
+    }
+
+    public function test_edit_produk_dapet_error_validasi()
+    {
+        $this->create_user(1);
+
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($this->user)->put('products/' . $product->id, [
+            'name' => 'Name',
+            'price' => null,
+        ]);
+
+        // cek status redirect
+        $response->assertStatus(302);
+        // cek error message
+        $response->assertSessionHasErrors(['name', 'price']);
+
+        // cek database tidak ada yg diupdate
+        $this->assertDatabaseMissing('products', [
+            'id' => $product->id,
+            'name' => 'Name',
+            'price' => null,
+        ]);
+    }
+
+    // jika mau test API response bisa pakai 
+    public function test_edit_produk_dapet_error_validasi_json()
+    {
+        $this->create_user(1);
+
+        $product = Product::factory()->create();
+
+        $response = $this->actingAs($this->user)
+            ->put('products/' . $product->id, 
+                ['name' => 'Name', 'price' => null],
+                ['Accept' => 'application/json'] // untuk mengirimkan response dalam format json
+            );
+
+        $response->assertStatus(422); // 422 adalah status error dari json
+
+        $response->assertJsonValidationErrors(['name', 'price']); // cek error message
+
+        $response->assertJsonFragment([ // cek response json nya
+            'name' => ['The name must be at least 6 characters.'],
+            'price' => ['The price field is required.'],
+        ]);
+    }
 }
