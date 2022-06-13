@@ -277,6 +277,9 @@ class ProductsTest extends TestCase
         $this->assertEquals(0, Product::count()); // cek jumlah produk setelah dihapus
     }
 
+    /** 
+    * @group approved
+    */
     public function test_tambah_produk_dengan_photo_terupload()
     {
         $this->create_user(1);
@@ -296,6 +299,9 @@ class ProductsTest extends TestCase
         // file testing bisa cek di : storage\framework\testing\disks\local
     }
 
+    /** 
+    * @group approved
+    */
     public function test_hapus_photo_product_dari_folder_storage()
     {
         $this->create_user(1);
